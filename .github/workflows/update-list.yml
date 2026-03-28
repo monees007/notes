@@ -1,0 +1,35 @@
+name: Update PDF List
+
+on:
+  push:
+    branches:
+      - main # Change this to 'master' if your default branch is master
+    paths:
+      - 'files/**' # Only trigger when contents inside the files directory change
+
+jobs:
+  update-files-js:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Grants the bot permission to push to your repo
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Generate files.js
+        run: node build-tree.js
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add files.js
+          # The '|| exit 0' prevents the action from failing if there are no new changes to commit
+          git commit -m "Auto-update files.js with new PDFs" || exit 0
+          git push
