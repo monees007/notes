@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Local PDF Viewer</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfobject/2.3.0/pdfobject.min.js"></script>
+    
+    <script src="files.js"></script>
+
+    <style>
+        /* Reset margins and set up full-screen layout */
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            width: 320px;
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            z-index: 10;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            background-color: #1a252f;
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .file-item {
+            padding: 15px 20px;
+            cursor: pointer;
+            border-bottom: 1px solid #34495e;
+            transition: background 0.2s ease-in-out;
+            line-height: 1.4;
+        }
+
+        .file-item:hover {
+            background-color: #3b536b;
+        }
+
+        .file-item.active {
+            background-color: #3498db;
+            color: #ffffff;
+            border-left: 4px solid #ecf0f1;
+        }
+
+        /* PDF Viewer Container Styling */
+        #pdf-viewer {
+            flex-grow: 1;
+            background-color: #525659; /* Standard PDF viewer background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+
+        /* Fallback styling if browser blocks PDF rendering */
+        .pdfobject-container { height: 100%; width: 100%; border: none; }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-header">My Documents</div>
+        <div id="file-list"></div>
+    </div>
+
+    <div id="pdf-viewer">
+        <p>Select a file from the sidebar to view it.</p>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const fileListContainer = document.getElementById("file-list");
+            
+            // Loop through the array from files.js
+            pdfFiles.forEach((fileName, index) => {
+                const item = document.createElement("div");
+                item.className = "file-item";
+                
+                // Remove the ".pdf" extension for a cleaner display name
+                item.textContent = fileName.replace(/\.pdf$/i, "");
+                
+                // Set up the click event to load the selected PDF
+                item.addEventListener("click", () => {
+                    // Highlight the active file in the sidebar
+                    document.querySelectorAll(".file-item").forEach(el => el.classList.remove("active"));
+                    item.classList.add("active");
+                    
+                    // Use PDFObject to embed the file in the main container
+                    if(PDFObject.supportsPDFs){
+                        PDFObject.embed(fileName, "#pdf-viewer");
+                    } else {
+                        // Fallback for browsers that don't support inline PDFs
+                        document.getElementById("pdf-viewer").innerHTML = 
+                            `<div style="text-align: center;">
+                                <p>Your browser doesn't support inline PDFs.</p>
+                                <a href="${fileName}" target="_blank" style="color: #3498db;">Click here to download/open the PDF</a>
+                            </div>`;
+                    }
+                });
+                
+                fileListContainer.appendChild(item);
+                
+                // Automatically open the very first file on load
+                if (index === 0) {
+                    item.click();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
